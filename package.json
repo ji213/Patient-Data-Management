@@ -1,0 +1,39 @@
+{
+  "name": "patient-data-management",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CRUD Patient data",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ji213/Patient-Data-Management.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ji213/Patient-Data-Management/issues"
+  },
+  "homepage": "https://github.com/ji213/Patient-Data-Management#readme",
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/mssql": "^9.1.9",
+    "@types/node": "^25.2.3",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "msnodesqlv8": "^5.1.5",
+    "mssql": "^12.2.0"
+  }
+}
