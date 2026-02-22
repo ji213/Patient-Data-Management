@@ -2,3 +2,5 @@ note.txt
 .env
 node_modules/
 dist/
+postman
+.postman
