@@ -1,5 +1,5 @@
 -- Check if the table exists in the 'dbo' schema
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[tbl_patient]') AND type in (N'U'))
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[tbl_patient]') AND type in (N'U'))
 BEGIN
     CREATE TABLE dbo.tbl_patient (
         PatientID INT PRIMARY KEY IDENTITY(1,1),
