@@ -1,15 +1,117 @@
 import { Request, Response } from 'express'
 import { getConnection } from '../config/dbConfig.js'
 
+const US_STATES = new Set([
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 
+    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 
+    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 
+    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+]);
+
 export const getPatients = async (req: Request, res: Response) => {
+    // GET patients, by gender, state, insurance, in age Range (ex: 40-50)
     try{
+        const { gender, state, insurance, ageRange } = req.query;
         const pool = await getConnection();
+        const request = pool.request();
+        const validGenders = ['M', 'F'];
 
-        const result = await pool.request()
-            .query('SELECT TOP 20 * FROM tbl_patient');
+        // BASE QUERY
+        let queryString = `SELECT t.FirstName
+        , t.LastName
+        , t.SSN
+        , t.DateOfBirth
+        , t.Gender
+        , t.Email
+        , t.PhoneNumber
+        , t.AddressLine1
+        , t.City
+        , t.State
+        , t.ZipCode
+        , t.InsuranceProvider
+        , t.IsActive
+        , t.CreatedDt
+        , t.UpdatedDt
+        FROM dbo.tbl_patient t WHERE 1=1 `
 
-        // send data back in json format
+        // String filters
+        if (gender){
+            // Standardize case
+            const genderUpper = String(gender).trim().toUpperCase();
+
+            // Check length
+            if(genderUpper.length !== 1){
+                return res.status(400).json({
+                    status:400,
+                    message:"ERROR: Gender must be passed in as single character",
+                    error: "INVALID_PARAMETER_FORMAT"
+
+                });
+            }
+
+            if(!validGenders.includes(genderUpper)){
+                // if supplied gender is not valid
+                return res.status(400).json({
+                    status:400,
+                    message: "Invalid gender parameter. Must be M or F",
+                    error: "INVALID_CHARACTER"
+                });
+            }
+            queryString += ` AND t.Gender = @gender `;
+            request.input('gender', gender);
+
+        }
+        if (state){
+            const stateStr = String(state).trim().toUpperCase();
+
+            // String must be 2 characters exactly
+            if (stateStr.length !== 2){
+                return res.status(400).json({
+                    status:400,
+                    message: "State must be a 2 letter string",
+                    error: "INVALID_STATE_FORMAT"
+                });
+            }
+            // Check against US states dictionary, must be real state
+            if(!US_STATES.has(stateStr)){
+                return res.status(400).json({
+                    status:400,
+                    message: "Invalid state supplied",
+                    error: "INVALID_STATE_VALUE"
+                });
+            }
+            queryString += ` AND t.State = @state `;
+            request.input('state', state);
+
+        }
+        if(insurance){
+            queryString += ` AND t.InsuranceProvider = @insurance `;
+            request.input('insurance', insurance)
+
+        }
+
+        // Age filtering
+        // Take age range and calculate min-max DOB 
+        if (typeof ageRange === 'string'){
+            const [minAgeStr, maxAgeStr] = ageRange.split('-');
+            const minAge = parseInt(minAgeStr as string);
+            const maxAge = parseInt(maxAgeStr as string);
+
+            if (!isNaN(minAge) && !isNaN(maxAge)){
+                // WHERE DOB BETWEEN (getdate - maxage + 1) AND (getdate - minage)
+                queryString += ` AND t.DateOfBirth BETWEEN DATEADD(year, -(@maxAge + 1), GETDATE()) 
+                                    AND DATEADD(year, -@minAge, GETDATE()) `;
+
+                request.input('minAge', minAge);
+                request.input('maxAge', maxAge);
+            }
+        }
+
+        // get result
+        const result = await request.query(queryString);
         res.json(result.recordset);
+
         
     } catch (err) {
         console.error("SQL ERROR: ", err);
