@@ -9,6 +9,9 @@ const US_STATES = new Set([
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ]);
 
+const minimumAgeAllowed = 0;
+const maximumAgeAllowed = 120;
+
 export const getPatients = async (req: Request, res: Response) => {
     // GET patients, by gender, state, insurance, in age Range (ex: 40-50)
     try{
@@ -95,8 +98,35 @@ export const getPatients = async (req: Request, res: Response) => {
         // Take age range and calculate min-max DOB 
         if (typeof ageRange === 'string'){
             const [minAgeStr, maxAgeStr] = ageRange.split('-');
+
+            if( !minAgeStr || !maxAgeStr){
+                return res.status(400).json({
+                    status: 400,
+                    message: "Age range must be in a min-max format",
+                    error: "INVALID_AGE_RANGE_FORMAT"
+                });
+            }
+
             const minAge = parseInt(minAgeStr as string);
             const maxAge = parseInt(maxAgeStr as string);
+
+            // Ensure min < max
+            if (minAge > maxAge){
+                return res.status(400).json({
+                    status: 400,
+                    message: "The minimum age cannot be greater than the maximum age",
+                    error: "INVALID_AGE_RANGE_ORDER"
+                });
+            }
+            // Validate boundaries
+
+            if ( minAge < minimumAgeAllowed || maxAge >  maximumAgeAllowed){
+                return res.status(400).json({
+                    status: 400,
+                    message: `Age range must be between ${minimumAgeAllowed} and ${maximumAgeAllowed}.`,
+                    error: "AGE_RANGE_OUT_OF_BOUNDS"
+                });
+            }
 
             if (!isNaN(minAge) && !isNaN(maxAge)){
                 // WHERE DOB BETWEEN (getdate - maxage + 1) AND (getdate - minage)
