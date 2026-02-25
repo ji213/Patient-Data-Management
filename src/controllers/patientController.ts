@@ -189,3 +189,112 @@ export const getPatientByID = async (req: Request, res: Response) => {
     }
 
 };
+
+export const postPatient = async (req: Request, res: Response) => {
+    try{
+        const pool = await getConnection();
+        const request = pool.request();
+
+        // Extract all fields
+        const {
+            FirstName, LastName, SSN, DateOfBirth,
+            Gender, Email, PhoneNumber, AddressLine1,
+            City, State, ZipCode, InsuranceProvider
+        } = req.body;
+
+        // Validate Minimum Required Fields
+        if (!FirstName || !LastName || !SSN || !DateOfBirth){
+            return res.status(400).json({
+                status: 400,
+                message: "Missing required fields: FirstName, LastName, SSN, and DOB are mandatory",
+                error: "POST_REQUIRED_FIELDS_MISSING"
+            });
+        }
+
+        
+
+
+        // Validate First and Last Name
+        // Validate SSN Format
+        // Validate DateOfBirth
+
+        // establish insert string
+        // dont close brackets yet, close at end
+        let insertString = `INSERT INTO dbo.tbl_patients ( 
+        FirstName
+        , LastName
+        , SSN 
+        , DateOfBirth `
+        // establish values string
+        let valuesString = `VALUES ( @FirstName, @LastName, @SSN}, @DateOfBirth}`
+
+        request.input('FirstName', FirstName);
+        request.input('LastName', LastName);
+        request.input('SSN', SSN);
+        request.input('DateOfBirth', DateOfBirth);
+
+
+        if(Gender){
+            // Validate Gender Format
+
+            // Add to strings
+
+        }
+        
+        if(Email){
+            // Validate Email Format
+
+            // Add to Strings
+        }
+
+        if(PhoneNumber){
+            // Validate Phone Number
+
+            // Add to Strings
+        }
+        
+        
+
+        // For address, we need all 4 variables supplied to post the data, 
+        // if any of the address fields are missing if one of them are supplied, raise error
+
+        if (AddressLine1 && City && State && ZipCode ){
+            // Validate AddressLine1
+            // Validate City
+            // Validate State
+            // Validate ZipCode
+
+        } else if (AddressLine1 || City || State || ZipCode){
+            // Only partial fields provided.... raise error
+            return res.status(400).json({
+                status: 400,
+                message: "All address fields required if any address fields are provided",
+                error: "POST_PARTIAL_ADDRESS_SUPPLIED"
+            });
+        }
+        
+
+        if(InsuranceProvider){
+            // Validate InsuranceProvider
+
+            // Add to Strings
+
+        }
+        
+        
+
+
+        // After all validations, close brackets
+
+        // Insert logic into database
+
+    } catch(err){
+        console.error("POST ERROR: ", err);
+        res.status(500).json({
+            status: 500,
+            message: "Internal Server Error",
+            error: "FATAL_POST_ERROR"
+        });
+    }
+
+};
