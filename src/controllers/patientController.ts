@@ -9,8 +9,8 @@ const US_STATES = new Set([
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ]);
 
-const minimumAgeAllowed = 0;
-const maximumAgeAllowed = 120;
+const MIN_AGE_ALLOWED = 0;
+const MAX_AGE_ALLOWED = 120;
 
 export const getPatients = async (req: Request, res: Response) => {
     // GET patients, by gender, state, insurance, in age Range (ex: 40-50)
@@ -120,10 +120,10 @@ export const getPatients = async (req: Request, res: Response) => {
             }
             // Validate boundaries
 
-            if ( minAge < minimumAgeAllowed || maxAge >  maximumAgeAllowed){
+            if ( minAge < MIN_AGE_ALLOWED || maxAge >  MAX_AGE_ALLOWED){
                 return res.status(400).json({
                     status: 400,
-                    message: `Age range must be between ${minimumAgeAllowed} and ${maximumAgeAllowed}.`,
+                    message: `Age range must be between ${MIN_AGE_ALLOWED} and ${MAX_AGE_ALLOWED}.`,
                     error: "AGE_RANGE_OUT_OF_BOUNDS"
                 });
             }
