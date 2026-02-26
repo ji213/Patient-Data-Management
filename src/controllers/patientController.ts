@@ -220,13 +220,13 @@ export const postPatient = async (req: Request, res: Response) => {
 
         // establish insert string
         // dont close brackets yet, close at end
-        let insertString = `INSERT INTO dbo.tbl_patients ( 
+        let insertString = `INSERT INTO dbo.tbl_patient ( 
         FirstName
         , LastName
         , SSN 
-        , DateOfBirth `
+        , DateOfBirth `;
         // establish values string
-        let valuesString = `VALUES ( @FirstName, @LastName, @SSN}, @DateOfBirth}`
+        let valuesString = `VALUES ( @FirstName, @LastName, @SSN, @DateOfBirth`;
 
         request.input('FirstName', FirstName);
         request.input('LastName', LastName);
@@ -238,6 +238,10 @@ export const postPatient = async (req: Request, res: Response) => {
             // Validate Gender Format
 
             // Add to strings
+            insertString += `, Gender`;
+            valuesString += `, @Gender`;
+
+            request.input('Gender', Gender);
 
         }
         
@@ -245,12 +249,20 @@ export const postPatient = async (req: Request, res: Response) => {
             // Validate Email Format
 
             // Add to Strings
+            insertString += `, Email`;
+            valuesString += `, @Email`;
+
+            request.input('Email', Email);
         }
 
         if(PhoneNumber){
             // Validate Phone Number
 
             // Add to Strings
+            insertString += `, PhoneNumber`;
+            valuesString += `, @PhoneNumber`;
+
+            request.input('PhoneNumber', PhoneNumber);
         }
         
         
@@ -263,6 +275,19 @@ export const postPatient = async (req: Request, res: Response) => {
             // Validate City
             // Validate State
             // Validate ZipCode
+
+            // Add to Strings
+            insertString += `, AddressLine1
+            , City
+            , State
+            , ZipCode `;
+
+            valuesString += `, @AddressLine1, @City, @State, @ZipCode`;
+
+            request.input('AddressLine1', AddressLine1);
+            request.input('City', City);
+            request.input('State', State);
+            request.input('ZipCode', ZipCode);
 
         } else if (AddressLine1 || City || State || ZipCode){
             // Only partial fields provided.... raise error
@@ -278,15 +303,31 @@ export const postPatient = async (req: Request, res: Response) => {
             // Validate InsuranceProvider
 
             // Add to Strings
+            insertString += `, InsuranceProvider`;
+            valuesString += `, @InsuranceProvider`;
 
+            request.input('InsuranceProvider', InsuranceProvider);
         }
         
         
 
 
         // After all validations, close brackets
+        insertString += `)`;
+        valuesString += `)`;
+
+        let finalQuery = insertString + valuesString;
+
+        //console.log(` SQL Query: ${finalQuery}`);
 
         // Insert logic into database
+        await request.query(finalQuery);
+
+        res.status(201).json({
+            status: 201,
+            message: "Patient created successfully"
+        });
+        
 
     } catch(err){
         console.error("POST ERROR: ", err);
