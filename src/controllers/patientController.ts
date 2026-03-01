@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { getConnection } from '../config/dbConfig.js'
+import { formatName, nameRegex, ssnRegex, dateRegex, ALLOWED_GENDERS, emailRegex, phoneRegex, zipRegex } from '../utils/stringUtils.js';
 
 const US_STATES = new Set([
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
@@ -196,7 +197,7 @@ export const postPatient = async (req: Request, res: Response) => {
         const request = pool.request();
 
         // Extract all fields
-        const {
+        let {
             FirstName, LastName, SSN, DateOfBirth,
             Gender, Email, PhoneNumber, AddressLine1,
             City, State, ZipCode, InsuranceProvider
@@ -211,12 +212,66 @@ export const postPatient = async (req: Request, res: Response) => {
             });
         }
 
-        
-
-
         // Validate First and Last Name
+
+        const sanitizedFirstName = formatName(FirstName);
+        const sanitizedLastName = formatName(LastName);
+
+        if (sanitizedFirstName.length < 2 || sanitizedLastName.length < 2){
+            return res.status(400).json({
+                status: 400,
+                message: "Names must be at least 2 characters long",
+                error: "POST_NAME_LENGTH_ERROR"
+            });
+        }
+        
+        if(!nameRegex.test(sanitizedFirstName) || !nameRegex.test(sanitizedLastName)){
+            return res.status(400).json({
+                status: 400,
+                message: "Names contain invalid characters",
+                error: "POST_NAME_INVALID_CHAR"
+            });
+        }
         // Validate SSN Format
+        
+        if(!ssnRegex.test(SSN)){
+            return res.status(400).json({
+                status: 400,
+                message: "Invalid SSN format. Expected XXX-XX-XXXX",
+                error: "POST_INVALID_SSN_FORMAT"
+            });
+        }
+
+
         // Validate DateOfBirth
+        // Check format
+        if (!dateRegex.test(DateOfBirth)){
+            return res.status(400).json({
+                status: 400,
+                message: "DOB must be in YYYY-MM-DD format",
+                error: "POST_INVALID_DOB_FORMAT"
+            });
+        }
+
+        const dob = new Date(DateOfBirth);
+
+        // check if it is a real date
+        if(isNaN(dob.getTime())){
+            return res.status(400).json({
+                status: 400,
+                message: "Invalid Date value",
+                error: "POST_INVALID_DOB_VALUE"
+            });
+        }
+
+        const today = new Date();
+        if (dob > today){
+            return res.status(400).json({
+                status: 400,
+                message: "DOB cannot be in future",
+                error: "POST_DOB_OUTOFBOUNDS"
+            });
+        }
 
         // establish insert string
         // dont close brackets yet, close at end
@@ -228,14 +283,23 @@ export const postPatient = async (req: Request, res: Response) => {
         // establish values string
         let valuesString = `VALUES ( @FirstName, @LastName, @SSN, @DateOfBirth`;
 
-        request.input('FirstName', FirstName);
-        request.input('LastName', LastName);
+        request.input('FirstName', sanitizedFirstName);
+        request.input('LastName', sanitizedLastName);
         request.input('SSN', SSN);
         request.input('DateOfBirth', DateOfBirth);
 
 
         if(Gender){
             // Validate Gender Format
+            Gender = Gender.toUpperCase().trim();
+
+            if(!ALLOWED_GENDERS.includes(Gender)){
+                return res.status(400).json({
+                    status: 400,
+                    message: "Invalid Gender supplied, please supply M or F",
+                    error: "POST_INVALID_GENDER"
+                });
+            }
 
             // Add to strings
             insertString += `, Gender`;
@@ -247,6 +311,15 @@ export const postPatient = async (req: Request, res: Response) => {
         
         if(Email){
             // Validate Email Format
+            Email = Email.trim().toLowerCase();
+
+            if(!emailRegex.test(Email)){
+                return res.status(400).json({
+                    status: 400,
+                    message: "Invalid Email Format",
+                    error: "POST_INVALID_EMAIL_FORMAT"
+                });
+            }
 
             // Add to Strings
             insertString += `, Email`;
@@ -257,6 +330,20 @@ export const postPatient = async (req: Request, res: Response) => {
 
         if(PhoneNumber){
             // Validate Phone Number
+            // Remove everything that is not a number
+
+            const digitsOnly = PhoneNumber.replace(/\D/g, '');
+
+            if(!phoneRegex.test(digitsOnly)){
+                return res.status(400).json({
+                    status: 400,
+                    message: "Phone number must be exactly 10 digits.",
+                    error: "INVALID_PHONE_FORMAT"
+                });
+            }
+
+            PhoneNumber = digitsOnly;
+
 
             // Add to Strings
             insertString += `, PhoneNumber`;
@@ -272,9 +359,29 @@ export const postPatient = async (req: Request, res: Response) => {
 
         if (AddressLine1 && City && State && ZipCode ){
             // Validate AddressLine1
+            AddressLine1 = AddressLine1.trim();
             // Validate City
+            City = City.trim();
+
             // Validate State
+            State = State.trim().toUpperCase();
+
+            if(!US_STATES.has(State)){
+                return res.status(400).json({ 
+                    status: 400,
+                    message: "Invalid State abbreviation. Please provide a valid US state.",
+                    error: "POST_INVALID_STATE"
+                });
+            }
             // Validate ZipCode
+            ZipCode = ZipCode.trim();
+            if(!zipRegex.test(ZipCode)){
+                return res.status(400).json({ 
+                    status: 400,
+                    message: "Zip Code must be exactly 5 digits.",
+                    error: "POST_INVALID_ZIP"
+                });
+            }
 
             // Add to Strings
             insertString += `, AddressLine1
@@ -301,6 +408,25 @@ export const postPatient = async (req: Request, res: Response) => {
 
         if(InsuranceProvider){
             // Validate InsuranceProvider
+            InsuranceProvider = InsuranceProvider.trim();
+
+            if(InsuranceProvider.length === 0){
+                return res.status(400).json({
+                    status: 400,
+                    message: "Insurance Provider cannot be empty if provided",
+                    error: "POST_EMPTY_INSURANCE"
+                });
+            }
+
+            if(InsuranceProvider.length> 100){
+                return res.status(400).json({
+                    status: 400,
+                    message: "Insurance Provider name is too long (max 100 char)",
+                    error: "POST_INVALID_INSURANCE"
+                });
+            }
+
+
 
             // Add to Strings
             insertString += `, InsuranceProvider`;
