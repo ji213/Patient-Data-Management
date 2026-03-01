@@ -1,22 +1,64 @@
-INSERT INTO dbo.tbl_patient (FirstName, LastName, SSN, DateOfBirth, Gender, Email, PhoneNumber, AddressLine1, City, State, ZipCode, InsuranceProvider)
-VALUES 
-('James', 'Miller', '900-11-2222', '1975-04-12', 'Male', 'j.miller@example.com', '217-555-0101', '742 Evergreen Ter', 'Springfield', 'IL', '62704', 'Blue Cross'),
-('Elena', 'Rodriguez', '900-22-3333', '1988-11-23', 'Female', 'e.rodriguez@example.com', '305-555-0102', '123 Maple St', 'Miami', 'FL', '33101', 'Aetna'),
-('Marcus', 'Chen', '900-33-4444', '1995-01-30', 'Male', 'm.chen@example.com', '206-555-0103', '888 Dragon Ln', 'Seattle', 'WA', '98101', 'Kaiser'),
-('Sarah', 'O''Connor', '900-44-5555', '1962-07-15', 'Female', 's.oconnor@example.com', '617-555-0104', '456 Dublin Way', 'Boston', 'MA', '02108', 'Medicare'),
-('David', 'Kim', '900-55-6666', '1982-03-22', 'Male', 'd.kim@example.com', '213-555-0105', '901 Seoul Blvd', 'Los Angeles', 'CA', '90001', 'UnitedHealth'),
-('Aisha', 'Khan', '900-66-7777', '1990-09-05', 'Female', 'a.khan@example.com', '713-555-0106', '303 Indus Ave', 'Houston', 'TX', '77001', 'Cigna'),
-('Robert', 'Taylor', '900-77-8888', '1955-12-12', 'Male', 'r.taylor@example.com', '303-555-0107', '12 Oak Ridge', 'Denver', 'CO', '80201', 'Humana'),
-('Lucia', 'Silva', '900-88-9999', '2001-02-14', 'Female', 'l.silva@example.com', '602-555-0108', '550 Amazonia Pkwy', 'Phoenix', 'AZ', '85001', 'Blue Cross'),
-('Kevin', 'Smyth', '900-99-0000', '1979-06-30', 'Male', 'k.smyth@example.com', '212-555-0109', '21B Baker St', 'New York', 'NY', '10001', 'Aetna'),
-('Grace', 'Lee', '900-12-1234', '1993-05-18', 'Female', 'g.lee@example.com', '702-555-0110', '777 Lucky Rd', 'Las Vegas', 'NV', '89101', 'UnitedHealth'),
-('Samuel', 'Jackson', '900-23-2345', '1968-10-10', 'Male', 's.jackson@example.com', '404-555-0111', '101 Pulp St', 'Atlanta', 'GA', '30301', 'Cigna'),
-('Emily', 'Davis', '900-34-3456', '1985-08-01', 'Female', 'e.davis@example.com', '503-555-0112', '404 Error Rd', 'Portland', 'OR', '97201', 'Kaiser'),
-('Victor', 'Ngo', '900-45-4567', '1999-12-25', 'Male', 'v.ngo@example.com', '801-555-0113', '99 Highland Dr', 'Salt Lake City', 'UT', '84101', 'Humana'),
-('Amara', 'Okonkwo', '900-56-5678', '1972-04-04', 'Female', 'a.okonkwo@example.com', '704-555-0114', '82 Heritage Ln', 'Charlotte', 'NC', '28201', 'Blue Cross'),
-('Liam', 'Wilson', '900-67-6789', '1991-03-11', 'Male', 'l.wilson@example.com', '615-555-0115', '15 River Bend', 'Nashville', 'TN', '37201', 'Aetna'),
-('Isabella', 'Martini', '900-78-7890', '1984-02-28', 'Female', 'i.martini@example.com', '415-555-0116', '12 Via Roma', 'San Francisco', 'CA', '94101', 'Medicare'),
-('Noah', 'Garcia', '900-89-8901', '2010-07-07', 'Male', 'n.garcia@example.com', '619-555-0117', '444 Sunset Blvd', 'San Diego', 'CA', '92101', 'UnitedHealth'),
-('Chloe', 'Dupont', '900-90-9012', '1997-09-19', 'Female', 'c.dupont@example.com', '504-555-0118', '89 Rue de Paris', 'New Orleans', 'LA', '70112', 'Cigna'),
-('Oscar', 'Hernandez', '900-01-0123', '1960-01-01', 'Male', 'o.hernandez@example.com', '210-555-0119', '23 Esperanza Way', 'San Antonio', 'TX', '78201', 'Humana'),
-('Sophia', 'Muller', '900-02-0234', '1989-06-06', 'Female', 's.muller@example.com', '303-555-0120', '67 Alpine Pass', 'Boulder', 'CO', '80301', 'Blue Cross');
+SET NOCOUNT ON;
+
+DECLARE @Counter INT = 1;
+DECLARE @MaxRows INT = 1000;
+
+-- 1. Setup Random Pools
+DECLARE @FirstNames TABLE (ID INT IDENTITY(1,1), Val VARCHAR(50))
+INSERT INTO @FirstNames VALUES ('James'),('Elena'),('Marcus'),('Sarah'),('David'),('Aisha'),('Robert'),('Lucia'),('Kevin'),('Grace'),('Samuel'),('Emily'),('Victor'),('Amara'),('Liam'),('Isabella'),('Noah'),('Chloe'),('Oscar'),('Sophia'),('Michael'),('Emma'),('John'),('Olivia'),('William'),('Ava'),('Chris'),('Mia'),('Anthony'),('Layla');
+
+DECLARE @LastNames TABLE (ID INT IDENTITY(1,1), Val VARCHAR(50))
+INSERT INTO @LastNames VALUES ('Miller'),('Rodriguez'),('Chen'),('O''Connor'),('Kim'),('Khan'),('Taylor'),('Silva'),('Smyth'),('Lee'),('Jackson'),('Davis'),('Ngo'),('Okonkwo'),('Wilson'),('Martini'),('Garcia'),('Dupont'),('Hernandez'),('Muller'),('Smith'),('Johnson'),('Williams'),('Brown'),('Jones'),('Wright'),('Lopez'),('Hill'),('Scott'),('Green');
+
+-- 2. Accurate City/State/AreaCode Mapping
+DECLARE @Locations TABLE (ID INT IDENTITY(1,1), City VARCHAR(50), State VARCHAR(2), AreaCode VARCHAR(3))
+INSERT INTO @Locations VALUES 
+('New York', 'NY', '212'), ('Brooklyn', 'NY', '718'), ('Los Angeles', 'CA', '310'), ('San Francisco', 'CA', '415'),
+('Houston', 'TX', '713'), ('Dallas', 'TX', '214'), ('Miami', 'FL', '305'), ('Orlando', 'FL', '407'),
+('Chicago', 'IL', '312'), ('Seattle', 'WA', '206'), ('Boston', 'MA', '617'), ('Atlanta', 'GA', '404'),
+('Denver', 'CO', '303'), ('Phoenix', 'AZ', '602'), ('Austin', 'TX', '512'), ('San Diego', 'CA', '619');
+
+DECLARE @Insurances TABLE (ID INT IDENTITY(1,1), Val VARCHAR(50))
+INSERT INTO @Insurances VALUES ('Blue Cross'),('Aetna'),('Kaiser'),('Medicare'),('UnitedHealth'),('Cigna'),('Humana');
+
+-- 3. The Generation Loop
+WHILE @Counter <= @MaxRows
+BEGIN
+    -- Pick random names
+    DECLARE @RF VARCHAR(50) = (SELECT TOP 1 Val FROM @FirstNames ORDER BY NEWID());
+    DECLARE @RL VARCHAR(50) = (SELECT TOP 1 Val FROM @LastNames ORDER BY NEWID());
+    
+    -- Pick a valid City/State/AreaCode combo
+    DECLARE @City VARCHAR(50), @State VARCHAR(2), @AC VARCHAR(3);
+    SELECT TOP 1 @City = City, @State = State, @AC = AreaCode FROM @Locations ORDER BY NEWID();
+
+    INSERT INTO dbo.tbl_patient (
+        FirstName, LastName, SSN, DateOfBirth, Gender, Email, 
+        PhoneNumber, AddressLine1, City, State, ZipCode, InsuranceProvider
+    )
+    SELECT 
+        @RF,
+        @RL,
+        -- SSN: Fully randomized digits, not based on counter
+        CONCAT(
+            CAST(FLOOR(RAND()*899) + 100 AS VARCHAR), '-', 
+            CAST(FLOOR(RAND()*89) + 10 AS VARCHAR), '-', 
+            RIGHT('0000' + CAST(FLOOR(RAND()*9999) AS VARCHAR), 4)
+        ),
+        -- DOB
+        DATEADD(DAY, - (ABS(CHECKSUM(NEWID())) % (365 * 62) + (365 * 18)), GETDATE()),
+        CASE WHEN ABS(CHECKSUM(NEWID())) % 2 = 0 THEN 'Male' ELSE 'Female' END,
+        -- Email
+        LOWER(CONCAT(@RF, '.', @RL, @Counter, '@fakeemail.com')),
+        -- Phone: Uses the correct Area Code for the City + random 7 digits
+        CONCAT(@AC, '-', CAST(FLOOR(RAND()*899) + 100 AS VARCHAR), '-', RIGHT('0000' + CAST(FLOOR(RAND()*9999) AS VARCHAR), 4)),
+        CONCAT(FLOOR(RAND()*9000) + 100, ' ', (SELECT TOP 1 Val FROM (VALUES ('Oak St'),('Maple Ave'),('Washington Blvd'),('Lakeview Dr'),('Park Rd')) AS T(Val) ORDER BY NEWID())),
+        @City,
+        @State,
+        RIGHT('00000' + CAST(ABS(CHECKSUM(NEWID())) % 99999 AS VARCHAR), 5),
+        (SELECT TOP 1 Val FROM @Insurances ORDER BY NEWID());
+
+    SET @Counter = @Counter + 1;
+END
+
+PRINT 'Successfully generated 1000 high-quality random patients.';
