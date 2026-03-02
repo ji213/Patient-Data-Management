@@ -38,7 +38,7 @@ export const getPatients = async (req: Request, res: Response) => {
         , t.IsActive
         , t.CreatedDt
         , t.UpdatedDt
-        FROM dbo.tbl_patient t WHERE 1=1 `
+        FROM dbo.tbl_patient t WHERE t.IsActive = 1 `
 
         // String filters
         if (gender){
@@ -166,7 +166,7 @@ export const getPatientByID = async (req: Request, res: Response) => {
         // treats the id as a safe value, not executable code
         const result = await pool.request()
             .input('pid', id)
-            .query('SELECT * FROM dbo.tbl_patient t WHERE t.PatientID = @pid');
+            .query('SELECT * FROM dbo.tbl_patient t WHERE t.PublicPatientID = @pid');
 
         // ERROR Handling
         // Handle the not found case
@@ -488,6 +488,58 @@ export const postPatient = async (req: Request, res: Response) => {
             
         }
 
+    }
+
+};
+
+export const deletePatient = async (req: Request, res: Response) =>{
+    try {
+        let {publicId} = req.params;
+        const pool = await getConnection();
+        const request = pool.request();
+
+        let query = `UPDATE dbo.tbl_patient 
+                SET IsActive = 0, 
+                    UpdatedDt = GETDATE() 
+                WHERE PublicPatientID = @publicId 
+                AND IsActive = 1`;
+
+        request.input('publicId', publicId);
+
+        // Basic Validation
+        if (!publicId || publicId.length !== 12){
+            return res.status(400).json({
+                status: 400,
+                message: "Invalid PublicID Format... expects 12 digits",
+                error: "DELETE_INVALID_PUBLIC_ID"
+            });
+        }
+
+        const result = await request.query(query);
+
+        //Check if anything was actually updated
+        if (result.rowsAffected[0] === 0){
+            return res.status(404).json({
+                status: 404,
+                message: "Patient not found or already deactivated",
+                error: "DELETE_TARGET_NOT_FOUND"
+            });
+        }
+
+        res.status(200).json({
+            status: 200,
+            message: "Patient successfully deactivated"
+        });
+
+        
+
+    } catch (err) {
+        console.error("DELETE ERROR: ", err);
+        res.status(500).json({
+            status: 500,
+            message: "Failed to deactivate patient",
+            error: "INTERNAL_ERROR"
+        });
     }
 
 };
