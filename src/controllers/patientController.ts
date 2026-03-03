@@ -543,3 +543,194 @@ export const deletePatient = async (req: Request, res: Response) =>{
     }
 
 };
+
+export const patchPatient = async (req: Request, res: Response) =>{
+    try {
+        let { publicId } = req.params;
+        let updates = req.body;
+
+        const keys = Object.keys(updates);
+
+        if(keys.length === 0){
+            return res.status(400).json({
+                status: 400,
+                message: "No updated fields provided",
+                error: "PATCH_NO_UPDATES"
+            });
+        }
+
+        // Only allow updates to columns that actually exist
+        const allowedColumns = ['FirstName', 'LastName', 'SSN', 'DateOfBirth', 'Gender', 'Email', 'PhoneNumber', 'InsuranceProvider', 'AddressLine1', 'City', 'State', 'ZipCode'];
+
+        const invalidKeys = keys.filter(key => !allowedColumns.includes(key));
+
+        if (invalidKeys.length > 0){
+            return res.status(400).json({
+                status: 400,
+                message: `Invalid fields provided: ${invalidKeys.join(', ')}`,
+                error: "INVALID_UPDATE_FIELDS"
+            });
+        }
+
+        const pool = await getConnection();
+        const request = pool.request();
+        request.input('publicId', publicId);
+
+        // Dynamically build set clause
+        let setClause = " ";
+        keys.forEach((key, index) =>{
+            const value = updates[key];
+
+            // Validation block
+            // FirstName
+            if (key === 'FirstName'){
+                
+                const sanitizedFirstName = formatName(value);
+                if (sanitizedFirstName.length < 2 ){
+                    return res.status(400).json({
+                        status: 400,
+                        message: "Names must be at least 2 characters long",
+                        error: "PATCH_NAME_LENGTH_ERROR"
+                    });
+                }
+            }
+            // LastName
+            if (key === 'LastName'){
+                const sanitizedLastName = formatName(value);
+
+                if (sanitizedLastName.length < 2){
+                    return res.status(400).json({
+                        status: 400,
+                        message: "Names must be at least 2 characters long",
+                        error: "PATCH_NAME_LENGTH_ERROR"
+                    });
+                }
+            }
+
+            // SSN
+            if (key === 'SSN'){
+                if(!ssnRegex.test(value)){
+                    return res.status(400).json({
+                        status: 400,
+                        message: "Invalid SSN format. Expected XXX-XX-XXXX",
+                        error: "PATCH_INVALID_SSN_FORMAT"
+                    });
+                }
+            }
+            //dob
+            if (key === 'DateOfBirth'){
+                if (!dateRegex.test(value)){
+                    return res.status(400).json({
+                        status: 400,
+                        message: "DOB must be in YYYY-MM-DD format",
+                        error: "PATCH_INVALID_DOB_FORMAT"
+                    });
+                }
+
+                const dob = new Date(value);
+
+                // check if it is a real date
+                if(isNaN(dob.getTime())){
+                    return res.status(400).json({
+                        status: 400,
+                        message: "Invalid Date value",
+                        error: "PATCH_INVALID_DOB_VALUE"
+                    });
+                }
+
+                const today = new Date();
+                if (dob > today){
+                    return res.status(400).json({
+                        status: 400,
+                        message: "DOB cannot be in future",
+                        error: "PATCH_DOB_OUTOFBOUNDS"
+                    });
+                }
+            }
+            //GENDER
+            if(key === 'Gender'){
+                // Validate Gender Format
+                value.toUpperCase().trim();
+
+                if(!ALLOWED_GENDERS.includes(value)){
+                    return res.status(400).json({
+                        status: 400,
+                        message: "Invalid Gender supplied, please supply M or F",
+                        error: "POST_INVALID_GENDER"
+                    });
+                }
+                // potentially need to overrite updates[key] with new value
+
+                
+            }
+            //Email
+            if(key === 'Email'){
+
+            }
+            //Phone Number
+            if(key === 'PhoneNumber'){
+
+            }
+            //Insurance Provider
+            if(key === 'Insurance Provider'){
+
+            }
+            //Address Line 1
+            if(key === 'AddressLine1'){
+
+            }
+            //City
+            if(key === 'City'){
+
+            }
+            //State
+            if(key === 'State'){
+
+            }
+            //ZipCode
+            if(key === 'ZipCode'){
+
+            }
+
+            request.input(key, updates[key]);
+            setClause += `${key} = @${key}, `;
+
+        });
+
+        // Updated timestamp
+        setClause += `UpdatedDt = GETDATE()`;
+
+        const query = `
+            UPDATE dbo.tbl_patient 
+            SET ${setClause}
+            WHERE PublicPatientID = @publicId AND IsActive = 1
+        `
+
+        const result = await request.query(query);
+
+        if (result.rowsAffected[0] === 0){
+            return res.status(404).json({
+                status: 404,
+                message: "Patient not found... nothing updated",
+                error: "PATCH_NO_UPDATE"
+            });
+        }
+
+        res.json({
+            message: "Patient updated successfully"
+        });
+
+    } catch(err: any){
+        if(err.status){
+            return res.status(err.status).json({
+                status: err.status,
+                message: err.message,
+                error: err.error
+            });
+        }
+
+        // Generic error
+        console.error("PATCH ERROR: ", err);
+        res.status(500).json({ error: "PATCH_FAILURE"});
+    }
+}

@@ -1,7 +1,7 @@
 // Map URLS to our controller functions
 
 import { Router } from "express";
-import { getPatients, getPatientByID, postPatient, deletePatient } from "../controllers/patientController.js";
+import { getPatients, getPatientByID, postPatient, deletePatient, patchPatient } from "../controllers/patientController.js";
 
 
 const router = Router();
@@ -18,5 +18,9 @@ router.post('/', postPatient);
 
 // DELETE (Inactivate)
 router.delete('/:publicId', deletePatient);
+
+// PATCH (update specific fields)
+router.patch('/:publicId', patchPatient);
+
 
 export default router;
