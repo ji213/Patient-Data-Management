@@ -549,6 +549,8 @@ export const patchPatient = async (req: Request, res: Response) =>{
         let { publicId } = req.params;
         let updates = req.body;
 
+        console.log(`PublicID: ${publicId}`);
+
         const keys = Object.keys(updates);
 
         if(keys.length === 0){
@@ -568,131 +570,196 @@ export const patchPatient = async (req: Request, res: Response) =>{
             return res.status(400).json({
                 status: 400,
                 message: `Invalid fields provided: ${invalidKeys.join(', ')}`,
-                error: "INVALID_UPDATE_FIELDS"
+                error: "PATCH_INVALID_UPDATE_FIELDS"
             });
         }
 
         const pool = await getConnection();
         const request = pool.request();
+
         request.input('publicId', publicId);
+  
 
         // Dynamically build set clause
-        let setClause = " ";
+        let setClause = "";
         keys.forEach((key, index) =>{
-            const value = updates[key];
+            let value = updates[key];
 
             // Validation block
             // FirstName
             if (key === 'FirstName'){
                 
-                const sanitizedFirstName = formatName(value);
-                if (sanitizedFirstName.length < 2 ){
-                    return res.status(400).json({
+                value = formatName(value);
+                if (value.length < 2 ){
+                    throw {
                         status: 400,
                         message: "Names must be at least 2 characters long",
                         error: "PATCH_NAME_LENGTH_ERROR"
-                    });
+                    };
                 }
             }
             // LastName
             if (key === 'LastName'){
-                const sanitizedLastName = formatName(value);
+                value = formatName(value);
 
-                if (sanitizedLastName.length < 2){
-                    return res.status(400).json({
+                if (value.length < 2){
+                    throw {
                         status: 400,
                         message: "Names must be at least 2 characters long",
                         error: "PATCH_NAME_LENGTH_ERROR"
-                    });
+                    };
                 }
+
             }
 
             // SSN
             if (key === 'SSN'){
                 if(!ssnRegex.test(value)){
-                    return res.status(400).json({
+                    throw {
                         status: 400,
                         message: "Invalid SSN format. Expected XXX-XX-XXXX",
                         error: "PATCH_INVALID_SSN_FORMAT"
-                    });
+                    };
                 }
             }
             //dob
             if (key === 'DateOfBirth'){
                 if (!dateRegex.test(value)){
-                    return res.status(400).json({
+                    throw {
                         status: 400,
                         message: "DOB must be in YYYY-MM-DD format",
                         error: "PATCH_INVALID_DOB_FORMAT"
-                    });
+                    };
                 }
 
                 const dob = new Date(value);
 
                 // check if it is a real date
                 if(isNaN(dob.getTime())){
-                    return res.status(400).json({
+                    throw {
                         status: 400,
                         message: "Invalid Date value",
                         error: "PATCH_INVALID_DOB_VALUE"
-                    });
+                    };
                 }
 
                 const today = new Date();
                 if (dob > today){
-                    return res.status(400).json({
+                    throw {
                         status: 400,
                         message: "DOB cannot be in future",
                         error: "PATCH_DOB_OUTOFBOUNDS"
-                    });
+                    };
                 }
             }
             //GENDER
             if(key === 'Gender'){
                 // Validate Gender Format
-                value.toUpperCase().trim();
+                value = value.toUpperCase().trim();
 
                 if(!ALLOWED_GENDERS.includes(value)){
-                    return res.status(400).json({
+                    throw {
                         status: 400,
                         message: "Invalid Gender supplied, please supply M or F",
-                        error: "POST_INVALID_GENDER"
-                    });
+                        error: "PATCH_INVALID_GENDER"
+                    };
                 }
-                // potentially need to overrite updates[key] with new value
 
-                
+           
             }
             //Email
             if(key === 'Email'){
+                // Validate Email Format
+                value = value.trim().toLowerCase();
+
+                if(!emailRegex.test(value)){
+                    throw {
+                        status: 400,
+                        message: "Invalid Email Format",
+                        error: "PATCH_INVALID_EMAIL_FORMAT"
+                    };
+                }
+                
 
             }
             //Phone Number
             if(key === 'PhoneNumber'){
+                const digitsOnly = value.replace(/\D/g, '');
+
+                if(!phoneRegex.test(digitsOnly)){
+                    throw {
+                        status: 400,
+                        message: "Phone number must be exactly 10 digits.",
+                        error: "PATCH_INVALID_PHONE_FORMAT"
+                    };
+                }
+
+                value = digitsOnly;
+
+                // May need to overwite updates[key] with the new value
 
             }
             //Insurance Provider
             if(key === 'Insurance Provider'){
+                // Validate InsuranceProvider
+                value = value.trim();
+
+                if(value.length === 0){
+                    throw {
+                        status: 400,
+                        message: "Insurance Provider cannot be empty if provided",
+                        error: "PATCH_EMPTY_INSURANCE"
+                    };
+                }
+
+                if(value.length> 100){
+                    throw {
+                        status: 400,
+                        message: "Insurance Provider name is too long (max 100 char)",
+                        error: "PATCH_INVALID_INSURANCE"
+                    };
+                }
 
             }
             //Address Line 1
             if(key === 'AddressLine1'){
+                value = value.trim();
 
             }
             //City
             if(key === 'City'){
-
+                // we dont do any complex validations for City
+                value = value.trim();
             }
             //State
             if(key === 'State'){
+                // Validate State
+                value = value.trim().toUpperCase();
+
+                if(!US_STATES.has(value)){
+                    throw { 
+                        status: 400,
+                        message: "Invalid State abbreviation. Please provide a valid US state.",
+                        error: "POST_INVALID_STATE"
+                    };
+                }
 
             }
             //ZipCode
             if(key === 'ZipCode'){
+                value = value.trim()
+                if(!zipRegex.test(value)){
+                    throw { 
+                        status: 400,
+                        message: "Zip Code must be exactly 5 digits.",
+                        error: "PATCH_INVALID_ZIP"
+                    };
+                }
 
+                // May need to overwrite updates[key]
             }
 
-            request.input(key, updates[key]);
+            request.input(key, value);
             setClause += `${key} = @${key}, `;
 
         });
@@ -705,6 +772,8 @@ export const patchPatient = async (req: Request, res: Response) =>{
             SET ${setClause}
             WHERE PublicPatientID = @publicId AND IsActive = 1
         `
+
+        console.log(query);
 
         const result = await request.query(query);
 
