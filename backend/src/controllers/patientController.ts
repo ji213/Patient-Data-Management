@@ -23,7 +23,8 @@ export const getPatients = async (req: Request, res: Response) => {
         const validGenders = ['M', 'F'];
 
         // BASE QUERY
-        let queryString = `SELECT t.FirstName
+        let queryString = `SELECT t.PublicPatientID
+        , t.FirstName
         , t.LastName
         , t.SSN
         , t.DateOfBirth

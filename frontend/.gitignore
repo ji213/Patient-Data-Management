@@ -36,3 +36,6 @@ coverage/
 
 # TS build info
 *.tsbuildinfo
+
+#notes
+notes.txt

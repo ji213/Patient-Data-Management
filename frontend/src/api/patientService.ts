@@ -1,9 +1,12 @@
 //patientService.ts
-
 import axios from 'axios';
 import type { Patient } from '../types/Patient';
 
-const API_BASE_URL = 'http://localhost:5000/api/patients';
+
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost';
+const PORT = import.meta.env.VITE_PORT || '5000'
+
+const API_BASE_URL = `${BASE_URL}:${PORT}/api/patients`;
 
 export const patientService = {
     // GET all active patients
