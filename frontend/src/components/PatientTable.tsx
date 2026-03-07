@@ -5,9 +5,11 @@ import { Trash2,  Edit} from 'lucide-react'; // Icons for future steps?
 
 interface Props {
     patients: Patient[];
+    onDelete: (id: string) => void;
+    onEdit: (patient: Patient) => void;
 }
 
-export const PatientTable = ({ patients }: Props) =>{
+export const PatientTable = ({ patients, onDelete, onEdit }: Props) =>{
 
     //format phone number
     const formatPhone = (phone?: string) =>{
@@ -62,8 +64,21 @@ export const PatientTable = ({ patients }: Props) =>{
                             <td>{p.ZipCode}</td>
                             <td>{p.InsuranceProvider}</td>
                             <td>
-                                <button title="Edit" style={{ marginRight: '8px'}}><Edit size={16}/></button>
-                                <button title="Delete" style={{ color: 'red' }}><Trash2 size={16}/></button>
+                                <button 
+                                    title="Edit" 
+                                    style={{ marginRight: '8px'}}
+                                    onClick={() => onEdit(p)}
+                                >
+                                    <Edit size={16}/>
+                                </button>
+
+                                <button 
+                                    title="Delete" 
+                                    style={{ color: 'red' }}
+                                    onClick={() => onDelete(p.PublicPatientID)}
+                                >
+                                    <Trash2 size={16}/>
+                                </button>
                             </td>
                         </tr>
                     ))}

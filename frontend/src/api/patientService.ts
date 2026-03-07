@@ -20,10 +20,19 @@ export const patientService = {
         const response = await axios.get(`${API_BASE_URL}/${id}`);
         return response.data;
     },
+    // POST Patient
+    createPatient: async (patient: Patient): Promise<void> => {
+        await axios.post(API_BASE_URL, patient);
+    },
 
     // PATCH
     patchPatient: async (id: string, updates: Partial<Patient>): Promise<void> =>{
         await axios.patch(`${API_BASE_URL}/${id}`, updates);
+    },
+
+    // DELETE/INACTIVATE
+    deletePatient: async (id: string): Promise<void> => {
+        await axios.delete(`${API_BASE_URL}/${id}`);
     }
 
 };
