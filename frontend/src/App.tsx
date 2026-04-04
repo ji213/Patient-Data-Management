@@ -3,6 +3,7 @@ import { patientService } from './api/patientService'
 import type { Patient } from './types/Patient'
 import { PatientTable } from './components/PatientTable';
 import { PatientModal } from './components/PatientModal';
+import './App.css';
 // import reactLogo from './assets/react.svg'
 // import viteLogo from '/vite.svg'
 // import './App.css'
@@ -64,9 +65,9 @@ function App() {
   if (loading) return <div> Connecting to SQL Server ... </div>;
 
   return (
-    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
-      <h1>Patient Management System</h1>
-      <p>Displaying all active patient records</p>
+    <div className='app-container'>
+      <h1 className='main-title'>Patient Management System</h1>
+      <p className='subtitle'>Displaying all active patient records</p>
       <hr />
 
       <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'flex-end'}}>

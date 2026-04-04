@@ -40,3 +40,55 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Centering and Font for the Title */
+.main-title {
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* Centering the Subtitle */
+.subtitle {
+  text-align: center;
+  color: #666;
+}
+
+/* Container to constrain the table width */
+.app-container {
+  max-width: 1200px; /* Adjust this to make the UI less wide */
+  margin: 0 auto;    /* Centers the whole container */
+  padding: 40px;
+}
+
+/* Container that limits the width and centers the table on the page */
+.table-container {
+  max-width: 800px;    /* Change this value to adjust how wide you want it */
+  margin: 20px auto;    /* 20px top/bottom spacing, 'auto' centers it horizontally */
+  padding: 0 15px;      /* Prevents table from touching screen edges on mobile */
+  overflow-x: auto;     /* Adds a scrollbar if the screen gets too small for the table */
+}
+
+/* Modern styling for the actual table inside the container */
+.patient-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;      /* Clips the corners to match border-radius */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+}
+
+.patient-table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.patient-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}

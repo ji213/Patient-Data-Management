@@ -28,7 +28,7 @@ export const PatientTable = ({ patients, onDelete, onEdit }: Props) =>{
 
     return (
         <div className="table-container">
-            <table border={1} cellPadding={10} style={{width: '100%', borderCollapse: 'collapse'}}>
+            <table className="patient-table">
                 <thead>
                     <tr style={{ background: '#f4f4f4', textAlign: 'left'}}>
                         <th>Patient ID</th>
