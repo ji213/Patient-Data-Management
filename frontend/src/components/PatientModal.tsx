@@ -39,7 +39,7 @@ export const PatientModal = ({ patient, onClose, onSuccess }: Props) => {
         setFormData(prev => ({ ...prev, [name]: value}));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             if (patient?.PublicPatientID){
@@ -51,6 +51,7 @@ export const PatientModal = ({ patient, onClose, onSuccess }: Props) => {
                 await patientService.createPatient(formData as Patient);
             }
 
+            // This tells app.tsx to close the modal and run loadPatients()
             onSuccess();
 
         } catch(err: any){
