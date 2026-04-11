@@ -1,6 +1,7 @@
 import React, {useState , useEffect } from 'react';
 import { patientService } from '../api/patientService';
 import type { Patient } from '../types/Patient';
+import Select from 'react-select';
 
 
 interface Props {
@@ -103,26 +104,36 @@ export const PatientModal = ({ patient, onClose, onSuccess }: Props) => {
                 <form onSubmit={handleSubmit} style={formGridStyle}>
                     
                     {/* Basic Info */}
-                    <input name="FirstName" placeholder="First Name" value={formData.FirstName} onChange={handleChange} required />
-                    <input name="LastName" placeholder="Last Name" value={formData.LastName} onChange={handleChange} required />
-                    <input name="SSN" placeholder="SSN (XXX-XX-XXXX)" value={formData.SSN} onChange={handleChange} maxLength={11} inputMode='numeric' />
-                    <input name="DateOfBirth" type="date" value={formData.DateOfBirth} onChange={handleChange} required />
+                    <input name="FirstName" style={sharedInputStyle} placeholder="First Name" value={formData.FirstName} onChange={handleChange} required />
+                    <input name="LastName" style={sharedInputStyle} placeholder="Last Name" value={formData.LastName} onChange={handleChange} required />
+                    <input name="SSN" style={sharedInputStyle} placeholder="SSN (XXX-XX-XXXX)" value={formData.SSN} onChange={handleChange} maxLength={11} inputMode='numeric' />
+                    <input name="DateOfBirth" style={sharedInputStyle} type="date" value={formData.DateOfBirth} onChange={handleChange} required />
                     
-                    <select name="Gender" value={formData.Gender} onChange={handleChange}>
+                    <select name="Gender" style={sharedInputStyle} value={formData.Gender} onChange={handleChange}>
                         <option value="">Select Gender</option>
                         <option value="M">Male</option>
                         <option value="F">Female</option>
                     </select>
 
-                    <input name="PhoneNumber" placeholder="Phone" value={formData.PhoneNumber} onChange={handleChange} />
-                    <input name="Email" type="email" placeholder="Email" value={formData.Email} onChange={handleChange} />
+                    <input name="PhoneNumber" style={sharedInputStyle} placeholder="Phone" value={formData.PhoneNumber} onChange={handleChange} />
+                    <input name="Email" style={sharedInputStyle} type="email" placeholder="Email" value={formData.Email} onChange={handleChange} />
                     
                     {/* Address Info */}
-                    <input name="AddressLine1" placeholder="Address" value={formData.AddressLine1} onChange={handleChange} />
-                    <input name="City" placeholder="City" value={formData.City} onChange={handleChange} />
-                    <input name="State" placeholder="State" value={formData.State} onChange={handleChange} />
-                    <input name="ZipCode" placeholder="Zip" value={formData.ZipCode} onChange={handleChange} />
-                    <input name="InsuranceProvider" placeholder="Insurance" value={formData.InsuranceProvider} onChange={handleChange} />
+                    <input name="AddressLine1" style={sharedInputStyle} placeholder="Address" value={formData.AddressLine1} onChange={handleChange} />
+                    <input name="City"style={sharedInputStyle}  placeholder="City" value={formData.City} onChange={handleChange} />
+                    <Select
+                        options={stateOptions}
+                        placeholder="State"
+                        // Connects the component to your formData state
+                        value={stateOptions.find(opt => opt.value === formData.State) || null}
+                        // Manually updates formData since this isn't a standard input event
+                        onChange={(selectedOption) => {
+                            setFormData(prev =>({ ...prev, State: selectedOption ? selectedOption.value : '' }));
+                        }}
+                        styles={customSelectStyles}
+                    />
+                    <input name="ZipCode" style={sharedInputStyle} placeholder="Zip" value={formData.ZipCode} onChange={handleChange} />
+                    <input name="InsuranceProvider" style={sharedInputStyle} placeholder="Insurance" value={formData.InsuranceProvider} onChange={handleChange} />
 
                     <div style={{ gridColumn: 'span 2', display: 'flex', gap: '10px', marginTop: '20px' }}>
                         <button type="submit" style={saveButtonStyle}>Save Patient</button>
@@ -150,6 +161,38 @@ const formGridStyle: React.CSSProperties = {
 const saveButtonStyle = {padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1};
 const cancelButtonStyle = {padding: '10px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1};
 
+const sharedInputStyle: React.CSSProperties = {
+    padding: '8px 10px',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    fontSize: '14px',
+    height: '38px', // Force all fields to this height
+    boxSizing: 'border-box', // Crucial to ensure padding doesn't add to the height
+    width: '100%'
+};
+
+const customSelectStyles = {
+    control: (base: any) => ({
+        ...base,
+        height: '38px',
+        minHeight: '38px',
+        borderColor: '#ccc',
+        borderRadius: '4px',
+        fontSize: '14px',
+        boxShadow: 'none',
+        '&:hover': { borderColor: '#ccc' }
+    }),
+    valueContainer: (base: any) => ({
+        ...base,
+        height: '38px',
+        padding: '0 10px',
+    }),
+    indicatorsContainer: (base: any) => ({
+        ...base,
+        height: '38px',
+    }),
+};
+
 // Helper function to format SSN as XXX-XX-XXXX
 const formatSSN = (value: string) => {
     // Remove all non-digits
@@ -163,3 +206,13 @@ const formatSSN = (value: string) => {
     if (limited.length <= 5) return `${limited.slice(0, 3)}-${limited.slice(3)}`;
     return `${limited.slice(0, 3)}-${limited.slice(3, 5)}-${limited.slice(5)}`;
 };
+
+const US_STATES = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", 
+    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
+    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
+    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+];
+
+const stateOptions = US_STATES.map(state => ({ value: state, label: state }));
