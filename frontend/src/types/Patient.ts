@@ -7,7 +7,7 @@ export interface Patient {
     LastName: string;
     SSN: string;
     DateOfBirth: string;
-    Gender?: 'M' | 'F';
+    Gender?: 'M' | 'F' | '';
     Email?: string;
     PhoneNumber?: string;
     InsuranceProvider?: string;

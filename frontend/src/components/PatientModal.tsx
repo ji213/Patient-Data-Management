@@ -29,22 +29,57 @@ export const PatientModal = ({ patient, onClose, onSuccess }: Props) => {
     // Populate form if editing
     useEffect(() => {
         if (patient) {
-            setFormData(patient);
+            const cleanData = {
+                ...patient,
+                DateOfBirth: patient.DateOfBirth ? patient.DateOfBirth.split('T')[0] : ''
+            }
+            setFormData(cleanData);
+        } else {
+            // Resets the form to empty strings so old data doesn't "stick"
+            setFormData({
+                FirstName: '',
+                LastName: '',
+                SSN: '',
+                DateOfBirth: '',
+                Gender: '',
+                PhoneNumber: '',
+                Email: '',
+                AddressLine1: '',
+                City: '',
+                State: '',
+                ZipCode: '',
+                InsuranceProvider: ''
+            });
         }
     }, [patient]);
 
     // Universal Change Handler
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value}));
+
+        let displayValue = value;
+
+        //Apply formatting only to the SSN field
+        if (name === 'SSN'){
+            displayValue = formatSSN(value);
+        }
+
+        setFormData(prev => ({ ...prev, [name]: displayValue}));
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             if (patient?.PublicPatientID){
+                const {
+                    PublicPatientID,
+                    IsActive,
+                    CreatedDt,
+                    UpdatedDt,
+                    ...editableData
+                } = formData
                 // If we have an ID, call PATCH
-                await patientService.patchPatient(patient.PublicPatientID, formData);
+                await patientService.patchPatient(patient.PublicPatientID, editableData);
             }
             else {
                 // If ID is missing, call POST
@@ -70,7 +105,7 @@ export const PatientModal = ({ patient, onClose, onSuccess }: Props) => {
                     {/* Basic Info */}
                     <input name="FirstName" placeholder="First Name" value={formData.FirstName} onChange={handleChange} required />
                     <input name="LastName" placeholder="Last Name" value={formData.LastName} onChange={handleChange} required />
-                    <input name="SSN" placeholder="SSN (XXX-XX-XXXX)" value={formData.SSN} onChange={handleChange} />
+                    <input name="SSN" placeholder="SSN (XXX-XX-XXXX)" value={formData.SSN} onChange={handleChange} maxLength={11} inputMode='numeric' />
                     <input name="DateOfBirth" type="date" value={formData.DateOfBirth} onChange={handleChange} required />
                     
                     <select name="Gender" value={formData.Gender} onChange={handleChange}>
@@ -114,3 +149,17 @@ const formGridStyle: React.CSSProperties = {
 };
 const saveButtonStyle = {padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1};
 const cancelButtonStyle = {padding: '10px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1};
+
+// Helper function to format SSN as XXX-XX-XXXX
+const formatSSN = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+
+    //Limit to 9 digits
+    const limited = digits.substring(0, 9);
+
+    //Inject dashes based on length
+    if (limited.length <= 3) return limited;
+    if (limited.length <= 5) return `${limited.slice(0, 3)}-${limited.slice(3)}`;
+    return `${limited.slice(0, 3)}-${limited.slice(3, 5)}-${limited.slice(5)}`;
+};
