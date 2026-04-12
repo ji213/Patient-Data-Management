@@ -64,6 +64,9 @@ export const PatientModal = ({ patient, onClose, onSuccess }: Props) => {
         if (name === 'SSN'){
             displayValue = formatSSN(value);
         }
+        else if (name === 'PhoneNumber'){
+            displayValue = formatPhone(value);
+        }
 
         setFormData(prev => ({ ...prev, [name]: displayValue}));
     };
@@ -205,6 +208,22 @@ const formatSSN = (value: string) => {
     if (limited.length <= 3) return limited;
     if (limited.length <= 5) return `${limited.slice(0, 3)}-${limited.slice(3)}`;
     return `${limited.slice(0, 3)}-${limited.slice(3, 5)}-${limited.slice(5)}`;
+};
+
+const formatPhone = (value: string) => {
+    // Remove all non digits
+    const digits = value.replace(/\D/g, '');
+
+    // Limit to 10 digits
+    const limited = digits.substring(0, 10);
+
+    // Inject formatting based on length
+    if (limited.length <= 3) return limited;
+    if (limited.length <= 6) return `${limited.slice(0, 3)}-${limited.slice(3)}`;
+
+    return `${limited.slice(0, 3)}-${limited.slice(3, 6)}-${limited.slice(6)}`;
+
+
 };
 
 const US_STATES = [
