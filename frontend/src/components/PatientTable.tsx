@@ -53,7 +53,7 @@ export const PatientTable = ({ patients, onDelete, onEdit }: Props) =>{
                             <td><code>{p.PublicPatientID || "MISSING"}</code></td>
                             <td>{p.FirstName}</td>
                             <td>{p.LastName}</td>
-                            <td>{p.SSN}</td>
+                            <td>{maskSSN(p.SSN)}</td>
                             <td>{formatDate(p.DateOfBirth)}</td>
                             <td>{p.Gender}</td>
                             <td>{p.Email}</td>
@@ -89,3 +89,15 @@ export const PatientTable = ({ patients, onDelete, onEdit }: Props) =>{
 };
 
 
+// ... at the bottom, below your styles or component
+const maskSSN = (ssn: string | undefined) => {
+    if (!ssn) return '';
+    // Remove dashes to get raw digits
+    const digits = ssn.replace(/\D/g, '');
+    
+    // Format as ***-**-XXXX
+    if (digits.length === 9) {
+        return `***-**-${digits.slice(5)}`;
+    }
+    return ssn; // Return as-is if it's not a standard 9-digit SSN
+};
