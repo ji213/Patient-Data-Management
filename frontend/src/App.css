@@ -1,0 +1,104 @@
+/* App.css */
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f0f7f7;
+  min-height: 100vh;         /* Ensures background covers full height */
+  font-family: 'Inter', sans-serif;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Centering and Font for the Title */
+.main-title {
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.5rem;
+  color: #1a3e5e;
+  margin-bottom: 10px;
+}
+
+/* Centering the Subtitle */
+.subtitle {
+  text-align: center;
+  color: #546e7a;
+}
+
+/* Container to constrain the table width */
+.app-container {
+  max-width: 1200px; /* Adjust this to make the UI less wide */
+  margin: 0 auto;    /* Centers the whole container */
+  padding: 40px;
+}
+
+/* Container that limits the width and centers the table on the page */
+.table-container {
+  max-width: 800px;    /* Change this value to adjust how wide you want it */
+  margin: 20px auto;    /* 20px top/bottom spacing, 'auto' centers it horizontally */
+  padding: 0 15px;      /* Prevents table from touching screen edges on mobile */
+  overflow-x: auto;     /* Adds a scrollbar if the screen gets too small for the table */
+}
+
+/* Modern styling for the actual table inside the container */
+.patient-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;      /* Clips the corners to match border-radius */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+}
+
+.patient-table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.patient-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}

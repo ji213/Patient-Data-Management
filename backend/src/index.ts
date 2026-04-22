@@ -1,11 +1,14 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import cors from 'cors';
 import { getConnection } from './config/dbConfig.js'; // Note the .js extension!
 import patientRoutes from './routes/patientRoutes.js';
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+app.use(cors());
 
 // allows the server to handle JSON 
 app.use(express.json()); 

@@ -7,7 +7,8 @@ BEGIN
         LastName NVARCHAR(50) NOT NULL,
         SSN NVARCHAR(11) NOT NULL, -- Format: XXX-XX-XXXX
         DateOfBirth DATE NOT NULL,
-        Gender NVARCHAR(10),
+        PublicPatientID VARCHAR(12) NOT NULL UNIQUE, -- 12 INT String
+        Gender CHAR(1) CHECK (Gender IN('M', 'F')),
         Email NVARCHAR(100),
         PhoneNumber NVARCHAR(20),
         AddressLine1 NVARCHAR(255),
@@ -19,6 +20,9 @@ BEGIN
         CreatedDt DATETIME DEFAULT GETDATE(),
         UpdatedDt DATETIME 
     );
+    
+    -- Create the index for faster lookups on PublicPatientID
+    CREATE INDEX IX_tbl_patient_PublicID ON dbo.tbl_patient(PublicPatientID);
     
     PRINT 'Table [dbo].[tbl_patient] created successfully.';
 END
